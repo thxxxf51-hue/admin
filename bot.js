@@ -5,7 +5,7 @@ const path = require('path');
 const BOT_TOKEN = process.env.ADMIN_BOT_TOKEN || '8184531398:AAFJoIcptkZth9GB9MJE44aHYR3ODxg48PQ';
 const ADMIN_ID = Number(process.env.ADMIN_ID || '6151671553');
 const APP_URL = process.env.APP_URL || '';
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 const bot = new Telegraf(BOT_TOKEN);
 const app = express();
