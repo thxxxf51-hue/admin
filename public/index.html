@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GiftBot Admin</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Sidebar -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      GiftBot Admin
+    </div>
+    <div class="sidebar-sub">Панель управления</div>
+  </div>
+  <nav class="sidebar-nav" id="nav">
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Дашборд
+    </div>
+    <div class="nav-item" data-page="users">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Пользователи
+    </div>
+    <div class="nav-item" data-page="draws">
+      <svg viewBox="0 0 24 24"><path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+      Розыгрыши
+    </div>
+    <div class="nav-item" data-page="promos">
+      <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      Промокоды
+    </div>
+    <div class="nav-item" data-page="balance">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="7"/><path d="M19.5 9.94a7 7 0 11-9.56 9.56"/><path d="M7 6h1v4"/><path d="M17.3 14.3l.7.7-2.8 2.8"/></svg>
+      Монеты/Звёзды
+    </div>
+    <div class="nav-item" data-page="shop">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.98 1.61h9.72a2 2 0 001.98-1.61L23 6H6"/></svg>
+      Магазин
+    </div>
+    <div class="nav-item" data-page="tasks">
+      <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Задания
+    </div>
+    <div class="nav-item" data-page="bans">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      Бан/Разбан
+    </div>
+    <div class="nav-item" data-page="broadcast">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      Рассылка
+    </div>
+    <div class="nav-item" data-page="access">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Доступ
+    </div>
+    <div class="nav-item" data-page="repair">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 010 1.4l-8 8a1 1 0 01-.7.3H4a1 1 0 01-1-1v-2a1 1 0 01.3-.7l8-8a1 1 0 011.4 0z"/><path d="M9 15l-4 4"/><path d="M15 8l4-4"/></svg>
+      Тех. работы
+    </div>
+  </nav>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="menu-btn" onclick="toggleSidebar()">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </div>
+  <div class="topbar-title" id="topbar-title">Дашборд</div>
+  <div class="topbar-badge" id="users-badge">
+    <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    <span id="users-count">…</span>
+  </div>
+</div>
+
+<!-- PAGES -->
+<div id="pages">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card"><div class="stat-lbl">Пользователей</div><div class="stat-val" id="s-users">—</div></div>
+    <div class="stat-card"><div class="stat-lbl">Активных розыгрышей</div><div class="stat-val" id="s-draws">—</div></div>
+    <div class="stat-card"><div class="stat-lbl">Промокодов</div><div class="stat-val" id="s-promos">—</div></div>
+    <div class="stat-card"><div class="stat-lbl">VIP пользователей</div><div class="stat-val" id="s-vip">—</div></div>
+    <div class="stat-card"><div class="stat-lbl">Монет в боте</div><div class="stat-val" id="s-coins" style="font-size:16px">—</div></div>
+    <div class="stat-card"><div class="stat-lbl">Тех. работы</div><div class="stat-val" id="s-repair" style="font-size:14px">—</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Топ по балансу</div>
+    <div id="top-users"></div>
+  </div>
+</div>
+
+<!-- USERS -->
+<div class="page" id="page-users">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search-inp" id="user-search" placeholder="Поиск по юзернейму или имени…" oninput="filterUsers()">
+  </div>
+  <div id="user-list"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- DRAWS -->
+<div class="page" id="page-draws">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Создать розыгрыш</div></div>
+    <div class="inp-row"><div class="inp-group"><label class="inp-label">Название/Приз</label><input class="inp" id="d-prize" placeholder="iPhone 15 или 5000"></div><div class="inp-group"><label class="inp-label">Победителей</label><input class="inp" id="d-winners" type="number" value="1" min="1" style="width:80px"></div></div>
+    <div class="inp-group"><label class="inp-label">Описание</label><textarea class="inp" id="d-desc" placeholder="Описание розыгрыша…"></textarea></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Окончание (дата/время)</label><input class="inp" id="d-end" type="datetime-local"></div>
+    </div>
+    <div class="inp-group">
+      <label class="inp-label">Картинка (файл)</label>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Выбрать файл
+        <input type="file" accept="image/*" id="d-img" style="display:none" onchange="previewDrawImg(event)">
+      </label>
+      <div id="d-img-preview" style="margin-top:8px"></div>
+    </div>
+    <div class="inp-group">
+      <label class="inp-label">Картинка по URL (альтернатива)</label>
+      <input class="inp" id="d-imgurl" placeholder="https://...">
+    </div>
+    <!-- conditions -->
+    <div class="sec-title" style="margin-top:6px">Условия участия</div>
+    <div class="inp-row">
+      <div class="inp-group">
+        <select class="inp" id="d-cond-type">
+          <option value="tg">📢 Подписаться на канал</option>
+          <option value="tg_chat">💬 Вступить в чат</option>
+          <option value="task">✅ Выполнить задание</option>
+          <option value="vip">⭐ Только VIP</option>
+        </select>
+      </div>
+      <div class="inp-group"><input class="inp" id="d-cond-val" placeholder="@channel или название"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="addDrawCond()" style="margin-bottom:10px">+ Добавить условие</button>
+    <div id="d-conds-list"></div>
+    <div class="inp-row" style="margin-top:4px">
+      <div class="inp-group"><label class="inp-label">Билет?</label><button class="toggle" id="d-ticket" onclick="this.classList.toggle('on')"></button></div>
+      <div class="inp-group"><label class="inp-label">Только VIP?</label><button class="toggle" id="d-vip-only" onclick="this.classList.toggle('on')"></button></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:8px" onclick="createDraw()">Создать розыгрыш</button>
+  </div>
+  <div class="sec-title">Активные</div>
+  <div id="active-draws"><div class="empty">Загрузка…</div></div>
+  <div class="sec-title" style="margin-top:4px">Завершённые</div>
+  <div id="finished-draws"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- PROMOS -->
+<div class="page" id="page-promos">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Создать промокод</div></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Код</label><input class="inp" id="p-code" placeholder="PROMO2025" style="text-transform:uppercase"></div>
+      <div class="inp-group"><label class="inp-label">Монет</label><input class="inp" id="p-reward" type="number" placeholder="1000"></div>
+    </div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Макс. активаций</label><input class="inp" id="p-uses" type="number" placeholder="100"></div>
+      <div class="inp-group"><label class="inp-label">Только VIP</label><button class="toggle" id="p-vip" onclick="this.classList.toggle('on')"></button></div>
+    </div>
+    <button class="btn btn-primary" onclick="createPromo()">Создать</button>
+  </div>
+  <div class="sec-title">Активные промокоды</div>
+  <div id="promo-list"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- BALANCE -->
+<div class="page" id="page-balance">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="7"/><path d="M19.5 9.94a7 7 0 11-9.56 9.56"/></svg> Выдать / Снять</div></div>
+    <div class="inp-group"><label class="inp-label">Юзернейм или UID</label><input class="inp" id="bal-user" placeholder="@username или 123456789"></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Сумма</label><input class="inp" id="bal-amount" type="number" placeholder="1000"></div>
+      <div class="inp-group">
+        <label class="inp-label">Тип</label>
+        <select class="inp" id="bal-type">
+          <option value="coins-add">+ Монеты</option>
+          <option value="coins-sub">- Монеты</option>
+          <option value="stars-add">+ Stars</option>
+          <option value="stars-sub">- Stars</option>
+        </select>
+      </div>
+    </div>
+    <div class="inp-group"><label class="inp-label">Причина (для транзакции)</label><input class="inp" id="bal-reason" placeholder="Описание операции…"></div>
+    <button class="btn btn-primary" onclick="doBalance()">Применить</button>
+  </div>
+</div>
+
+<!-- SHOP -->
+<div class="page" id="page-shop">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Новый товар</div></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Название</label><input class="inp" id="sh-name" placeholder="Название товара"></div>
+      <div class="inp-group"><label class="inp-label">Цена</label><input class="inp" id="sh-price" type="number" placeholder="999"></div>
+    </div>
+    <div class="inp-group"><label class="inp-label">Описание</label><textarea class="inp" id="sh-desc" placeholder="Описание…"></textarea></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Тег</label><input class="inp" id="sh-tag" placeholder="NEW"></div>
+      <div class="inp-group"><label class="inp-label">В наличии (шт, 0=∞)</label><input class="inp" id="sh-stock" type="number" placeholder="0" value="0"></div>
+    </div>
+    <div class="inp-group"><label class="inp-label">Картинка URL</label><input class="inp" id="sh-img" placeholder="https://..."></div>
+    <button class="btn btn-primary" onclick="createShopItem()">Добавить товар</button>
+  </div>
+  <div class="sec-title">Стандартные товары</div>
+  <div id="static-items"><div class="empty">Загрузка…</div></div>
+  <div class="sec-title" style="margin-top:4px">Кастомные товары</div>
+  <div id="custom-items"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- TASKS -->
+<div class="page" id="page-tasks">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Добавить задание</div></div>
+    <div class="inp-group"><label class="inp-label">Название</label><input class="inp" id="t-name" placeholder="Подпишись на канал"></div>
+    <div class="inp-row">
+      <div class="inp-group">
+        <label class="inp-label">Тип</label>
+        <select class="inp" id="t-type">
+          <option value="sub:">📢 Подписка на канал</option>
+          <option value="chat:">💬 Вступить в чат</option>
+          <option value="ref">👥 Реферал</option>
+          <option value="case">📦 Открыть кейс</option>
+          <option value="wallet">💳 Кошелёк</option>
+        </select>
+      </div>
+      <div class="inp-group"><label class="inp-label">Награда (монет)</label><input class="inp" id="t-reward" type="number" placeholder="500"></div>
+    </div>
+    <div class="inp-group"><label class="inp-label">Канал/URL (для подписки/чата)</label><input class="inp" id="t-channel" placeholder="@channel"></div>
+    <div class="inp-group"><label class="inp-label">Описание</label><textarea class="inp" id="t-desc" placeholder="Описание задания…"></textarea></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Тег NEW</label><button class="toggle" id="t-new" onclick="this.classList.toggle('on')"></button></div>
+    </div>
+    <button class="btn btn-primary" onclick="createTask()">Добавить</button>
+  </div>
+  <div class="sec-title">Текущие задания</div>
+  <div id="tasks-list"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- BANS -->
+<div class="page" id="page-bans">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Забанить</div></div>
+    <div class="inp-group"><label class="inp-label">Юзернейм</label><input class="inp" id="ban-user" placeholder="@username"></div>
+    <div class="inp-group">
+      <label class="inp-label">Срок</label>
+      <select class="inp" id="ban-dur">
+        <option value="0">Навсегда</option>
+        <option value="3600000">1 час</option>
+        <option value="86400000">1 день</option>
+        <option value="604800000">7 дней</option>
+        <option value="2592000000">30 дней</option>
+      </select>
+    </div>
+    <div class="inp-group"><label class="inp-label">Причина</label><input class="inp" id="ban-reason" placeholder="Причина бана…"></div>
+    <button class="btn btn-danger" onclick="doBan()">🚫 Забанить</button>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-hdr"><div class="card-title">Разбанить</div></div>
+    <div class="inp-group"><label class="inp-label">Юзернейм</label><input class="inp" id="unban-user" placeholder="@username"></div>
+    <button class="btn btn-green" onclick="doUnban()">✅ Разбанить</button>
+  </div>
+  <div class="sec-title">Заблокированные</div>
+  <div id="bans-list"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- BROADCAST -->
+<div class="page" id="page-broadcast">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 013 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg> Рассылка в ЛС</div></div>
+    <div class="inp-group"><label class="inp-label">Текст сообщения</label><textarea class="inp" id="bc-text" placeholder="Текст рассылки…" style="min-height:100px"></textarea></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Получатели</label><select class="inp" id="bc-target"><option value="all">Все</option><option value="vip">Только VIP</option></select></div>
+    </div>
+    <button class="btn btn-primary" onclick="doBroadcast()">Разослать</button>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> In-app уведомление</div></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Тип</label><select class="inp" id="notif-type"><option value="system">System</option><option value="promo">Promo</option><option value="win">Win</option><option value="alert">Alert</option></select></div>
+    </div>
+    <div class="inp-group"><label class="inp-label">Текст</label><textarea class="inp" id="notif-text" placeholder="Текст уведомления…"></textarea></div>
+    <button class="btn btn-primary" onclick="doNotif()">Отправить уведомление</button>
+  </div>
+</div>
+
+<!-- ACCESS -->
+<div class="page" id="page-access">
+  <div class="card">
+    <div class="toggle-row">
+      <div><div class="toggle-lbl">Режим приглашений</div><div class="toggle-sub">Приложение только для белого списка</div></div>
+      <button class="toggle" id="access-toggle" onclick="toggleAccess()"></button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Добавить пользователя</div></div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">UID</label><input class="inp" id="acc-uid" placeholder="123456789"></div>
+      <div class="inp-group"><label class="inp-label">Юзернейм</label><input class="inp" id="acc-user" placeholder="@username"></div>
+    </div>
+    <button class="btn btn-green" onclick="addAccess()">Добавить</button>
+  </div>
+  <div class="sec-title">Белый список</div>
+  <div id="access-list"><div class="empty">Загрузка…</div></div>
+</div>
+
+<!-- REPAIR -->
+<div class="page" id="page-repair">
+  <div class="card">
+    <div class="toggle-row">
+      <div><div class="toggle-lbl">Тех. работы</div><div class="toggle-sub">Приложение недоступно для пользователей</div></div>
+      <button class="toggle" id="repair-toggle" onclick="toggleRepair()"></button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title" style="margin-bottom:10px">Статус</div>
+    <div id="repair-status" style="font-size:13px;color:var(--muted2)">Загрузка…</div>
+  </div>
+</div>
+
+</div><!-- /pages -->
+
+<!-- User modal -->
+<div class="modal-bg" id="user-modal" onclick="if(event.target===this)closeUserModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-hdr"><div class="modal-title" id="um-title">Пользователь</div><button class="modal-close" onclick="closeUserModal()">✕</button></div>
+    <div class="modal-body" id="um-body"></div>
+  </div>
+</div>
+
+<!-- Draw edit modal -->
+<div class="modal-bg" id="draw-modal" onclick="if(event.target===this)closeDrawModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-hdr"><div class="modal-title">Редактировать розыгрыш</div><button class="modal-close" onclick="closeDrawModal()">✕</button></div>
+    <div class="modal-body" id="dm-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
