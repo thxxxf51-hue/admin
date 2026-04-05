@@ -16,8 +16,11 @@ async function api(path, method = 'GET', body = null) {
     headers: { 'Content-Type': 'application/json', 'x-admin-secret': SECRET }
   };
   const proxyPath = '/proxy/api/admin' + path;
-  const qs = method === 'GET' ? (path.includes('?') ? '&' : '?') + 'userId=6151671553' : '';
+  // Always add userId to query string for GET and DELETE
+  const needsQs = method === 'GET' || method === 'DELETE';
+  const qs = needsQs ? (path.includes('?') ? '&' : '?') + 'userId=6151671553' : '';
   if (body && method !== 'GET') opts.body = JSON.stringify({ ...body, userId: '6151671553' });
+  else if (!body && method !== 'GET' && method !== 'DELETE') opts.body = JSON.stringify({ userId: '6151671553' });
   try {
     const r = await fetch(proxyPath + qs, opts);
     return await r.json();
@@ -385,34 +388,66 @@ async function loadShop() {
       <div class="item-card-hdr"><div class="item-card-title">${item.name}</div><span class="chip">${item.price}</span></div>
       <div class="item-card-actions"><button class="btn btn-ghost btn-sm" onclick="editStaticItem(${item.id})">✏️ Изменить</button></div>
     </div>`).join('') : '<div class="empty">Ошибка</div>';
-  document.getElementById('custom-items').innerHTML = Array.isArray(customR)&&customR.length ? customR.map(item=>
-    `<div class="item-card">
+  document.getElementById('custom-items').innerHTML = Array.isArray(customR)&&customR.length ? customR.map(item=>{
+    const stockBadge = (item.stock!==null&&item.stock!==undefined) ? `<span class="stock-badge">${item.stock} шт. в наличии</span>` : '';
+    return `<div class="item-card" style="position:relative">
+      ${item.imageUrl ? `<div style="position:relative;margin-bottom:8px"><img src="${item.imageUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:8px">${stockBadge ? `<span style="position:absolute;top:6px;right:6px" class="stock-badge">${item.stock} шт.</span>` : ''}</div>` : stockBadge}
       <div class="item-card-hdr">
         <div class="item-card-title">${item.name} ${item.tag==='NEW'?'<span class="badge-new">NEW</span>':(item.tag?'<span class="chip">'+item.tag+'</span>':'')}</div>
         <span class="chip">${item.price}</span>
       </div>
       <div class="item-card-meta">
-        ${item.desc?'<span>'+item.desc.slice(0,40)+'</span>':''}
-        ${item.stock!==null&&item.stock!==undefined?'<span>В наличии: '+item.stock+'</span>':''}
+        ${item.desc?'<span>'+item.desc.slice(0,40)+'…</span>':''}
+        ${!item.imageUrl&&(item.stock!==null&&item.stock!==undefined)?'<span class="stock-badge">'+item.stock+' шт. в наличии</span>':''}
       </div>
       <div class="item-card-actions">
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+          🖼
+          <input type="file" accept="image/*" style="display:none" onchange="uploadShopItemImg(event,${item.id})">
+        </label>
         <button class="btn btn-ghost btn-sm" onclick="editCustomItem(${item.id})">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteShopItem(${item.id})">✕</button>
       </div>
-    </div>`).join('') : '<div class="empty">Нет кастомных товаров</div>';
+    </div>`;
+  }).join('') : '<div class="empty">Нет кастомных товаров</div>';
 }
 async function createShopItem() {
-  const name  = document.getElementById('sh-name').value.trim();
-  const price = parseInt(document.getElementById('sh-price').value);
-  const desc  = document.getElementById('sh-desc').value.trim();
-  const tag   = document.getElementById('sh-tag').value.trim();
-  const stock = parseInt(document.getElementById('sh-stock').value)||null;
-  const imgUrl= document.getElementById('sh-img').value.trim();
+  const name   = document.getElementById('sh-name').value.trim();
+  const price  = parseInt(document.getElementById('sh-price').value);
+  const desc   = document.getElementById('sh-desc').value.trim();
+  const tag    = document.getElementById('sh-tag').value.trim();
+  const stock  = parseInt(document.getElementById('sh-stock').value)||null;
+  const imgUrl = document.getElementById('sh-img').value.trim();
+  const imgFile= document.getElementById('sh-img-file').files[0];
   if (!name||!price) { toast('Заполни поля','r'); return; }
-  const r = await api('/shop','POST',{ name, price, desc, tag, imageUrl:imgUrl, stock:stock||null });
-  if (r.ok) { toast('Товар добавлен','g'); ['sh-name','sh-price','sh-desc','sh-tag','sh-img'].forEach(id=>document.getElementById(id).value=''); loadShop(); }
+  const r = await api('/shop','POST',{ name, price, desc, tag, imageUrl:imgUrl||null, stock:stock||null });
+  if (!r.ok) { toast(r.error||'Ошибка','r'); return; }
+  // upload image file if provided
+  if (imgFile && r.item) {
+    const b64 = await new Promise(res => { const fr=new FileReader(); fr.onload=e=>res(e.target.result.split(',')[1]); fr.readAsDataURL(imgFile); });
+    await api('/shop/'+r.item.id+'/image','POST',{ imageBase64:b64, mimeType:imgFile.type });
+  }
+  toast('Товар добавлен','g');
+  ['sh-name','sh-price','sh-desc','sh-tag','sh-img'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sh-img-file').value='';
+  document.getElementById('sh-img-preview').innerHTML='';
+  loadShop();
+}
+
+async function uploadShopItemImg(e, id) {
+  const file = e.target.files[0]; if (!file) return;
+  const b64 = await new Promise(res => { const fr=new FileReader(); fr.onload=ev=>res(ev.target.result.split(',')[1]); fr.readAsDataURL(file); });
+  const r = await api('/shop/'+id+'/image','POST',{ imageBase64:b64, mimeType:file.type });
+  if (r.ok) { toast('Картинка обновлена','g'); loadShop(); }
   else toast(r.error||'Ошибка','r');
 }
+function previewShopImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById('sh-img-preview').innerHTML = `<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:100px;object-fit:cover">`; };
+  reader.readAsDataURL(file);
+}
+
 async function editStaticItem(id) {
   const name = prompt('Новое название:'); const price = prompt('Новая цена:');
   const body = {}; if (name) body.name=name; if (price) body.rew=parseInt(price);
