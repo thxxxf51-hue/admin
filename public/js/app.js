@@ -176,9 +176,37 @@ async function openUserModal(uid) {
       <button class="btn btn-green btn-sm" onclick="quickBal('${uid}','add')">+ Монеты</button>
       <button class="btn btn-ghost btn-sm" onclick="quickBal('${uid}','sub')">- Монеты</button>
       <button class="btn btn-danger btn-sm" onclick="quickBanModal('${uid}','${u.username||''}')">🚫 Бан</button>
+    </div>
+    <div style="margin-top:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Транзакции</div>
+      <div id="um-txs"><div style="text-align:center;padding:10px;color:var(--muted2);font-size:12px">Загрузка…</div></div>
     </div>`;
   document.getElementById('user-modal').classList.add('show');
+  // Load transactions async
+  loadUserTxs('${uid}');
 }
+async function loadUserTxs(uid) {
+  const el = document.getElementById('um-txs');
+  if (!el) return;
+  try {
+    const r = await fetch(`/proxy/api/transactions?userId=${uid}&s=${SECRET}`, { headers:{'x-admin-secret':SECRET} });
+    const d = await r.json();
+    const txs = d.transactions || [];
+    if (!txs.length) { el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted2);font-size:12px">Нет транзакций</div>'; return; }
+    el.innerHTML = txs.slice(0,20).map(tx => {
+      const isPos = String(tx.amount||'').startsWith('+');
+      const isNeg = String(tx.amount||'').startsWith('-');
+      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="font-size:11px;font-weight:700;color:${isPos?'#10b981':isNeg?'#ef4444':'var(--muted2)'}">
+          ${tx.amount||'—'}
+        </span>
+        <span style="flex:1;font-size:12px;color:rgba(255,255,255,.75)">${tx.details||tx.type||'—'}</span>
+        <span style="font-size:10px;color:var(--muted2)">${tx.date||''}</span>
+      </div>`;
+    }).join('');
+  } catch { el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted2);font-size:12px">Ошибка</div>'; }
+}
+
 function closeUserModal() { document.getElementById('user-modal').classList.remove('show'); }
 
 async function quickBal(uid, action) {
