@@ -183,7 +183,7 @@ async function openUserModal(uid) {
     </div>`;
   document.getElementById('user-modal').classList.add('show');
   // Load transactions async
-  loadUserTxs('${uid}');
+  loadUserTxs(uid);
 }
 async function loadUserTxs(uid) {
   const el = document.getElementById('um-txs');
