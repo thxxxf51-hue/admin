@@ -324,6 +324,7 @@ function openDrawEditModal(draw) {
       </div>
     </div>
     <button class="btn btn-primary" style="margin-top:8px" onclick="saveDrawEdit(${draw.id})">Сохранить</button>`;
+  const _dmt=document.getElementById('draw-modal-title');if(_dmt)_dmt.textContent='Редактировать розыгрыш';
   document.getElementById('draw-modal').classList.add('show');
 }
 function closeDrawModal() { document.getElementById('draw-modal').classList.remove('show'); }
@@ -483,43 +484,11 @@ async function editStaticItem(id) {
   if (r.ok) { toast('Обновлено','g'); loadShop(); } else toast(r.error||'Ошибка','r');
 }
 async function editCustomItem(id) {
-  // Get current item data
-  const items = await api('/shop');
-  const item = Array.isArray(items) ? items.find(i => i.id === id) : null;
-  const curPrice = item ? item.price : '';
-  const curStock = item ? (item.stock !== null && item.stock !== undefined ? item.stock : '') : '';
-
-  // Show modal with current values
-  document.getElementById('dm-body').innerHTML = `
-    <div class="inp-group"><label class="inp-label">Цена</label>
-      <input class="inp" id="edit-item-price" type="number" value="${curPrice}" placeholder="Цена в монетах">
-    </div>
-    <div class="inp-group"><label class="inp-label">В наличии (шт.)</label>
-      <input class="inp" id="edit-item-stock" type="number" value="${curStock}" placeholder="0 = без ограничения">
-    </div>
-    <div class="inp-group"><label class="inp-label">Название</label>
-      <input class="inp" id="edit-item-name" value="${item ? item.name : ''}" placeholder="Название товара">
-    </div>
-    <div class="inp-group"><label class="inp-label">Описание</label>
-      <textarea class="inp" id="edit-item-desc">${item ? item.desc||'' : ''}</textarea>
-    </div>
-    <button class="btn btn-primary" style="margin-top:4px" onclick="_saveCustomItem(${id})">Сохранить</button>`;
-  document.getElementById('draw-modal').classList.add('show');
-}
-
-async function _saveCustomItem(id) {
-  const price = parseInt(document.getElementById('edit-item-price').value);
-  const stockVal = document.getElementById('edit-item-stock').value.trim();
-  const name = document.getElementById('edit-item-name').value.trim();
-  const desc = document.getElementById('edit-item-desc').value.trim();
-  const body = {};
-  if (price) body.price = price;
-  if (name) body.name = name;
-  if (desc !== undefined) body.desc = desc;
-  body.stock = stockVal === '' || stockVal === '0' ? null : parseInt(stockVal);
-  const r = await api('/shop/'+id, 'PATCH', body);
-  if (r.ok) { toast('Обновлено','g'); closeDrawModal(); loadShop(); }
-  else toast(r.error||'Ошибка','r');
+  const price = prompt('Новая цена:'); const stock = prompt('В наличии (0=∞):');
+  const body = {}; if (price) body.price=parseInt(price);
+  if (stock!==null) body.stock = stock==='0'?null:parseInt(stock);
+  const r = await api('/shop/'+id,'PATCH',body);
+  if (r.ok) { toast('Обновлено','g'); loadShop(); } else toast(r.error||'Ошибка','r');
 }
 async function deleteShopItem(id) {
   if (!confirm('Удалить?')) return;
