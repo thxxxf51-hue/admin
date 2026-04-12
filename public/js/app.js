@@ -484,11 +484,96 @@ async function editStaticItem(id) {
   if (r.ok) { toast('Обновлено','g'); loadShop(); } else toast(r.error||'Ошибка','r');
 }
 async function editCustomItem(id) {
-  const price = prompt('Новая цена:'); const stock = prompt('В наличии (0=∞):');
-  const body = {}; if (price) body.price=parseInt(price);
-  if (stock!==null) body.stock = stock==='0'?null:parseInt(stock);
-  const r = await api('/shop/'+id,'PATCH',body);
-  if (r.ok) { toast('Обновлено','g'); loadShop(); } else toast(r.error||'Ошибка','r');
+  // Load current item data
+  const items = await api('/shop');
+  const item = Array.isArray(items) ? items.find(i => i.id === id) : null;
+  // Set modal title
+  const titleEl = document.getElementById('draw-modal-title');
+  if (titleEl) titleEl.textContent = 'Редактировать товар';
+  // Build modal body
+  document.getElementById('dm-body').innerHTML = `
+    <div class="inp-group">
+      <label class="inp-label">Название</label>
+      <input class="inp" id="eit-name" value="${item ? (item.name||'') : ''}" placeholder="Название товара">
+    </div>
+    <div class="inp-row">
+      <div class="inp-group">
+        <label class="inp-label">Цена (монет)</label>
+        <input class="inp" id="eit-price" type="number" value="${item ? (item.price||'') : ''}" placeholder="999">
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">В наличии (шт.)</label>
+        <input class="inp" id="eit-stock" type="number" value="${item && item.stock !== null && item.stock !== undefined ? item.stock : ''}" placeholder="0 = без ограничения">
+      </div>
+    </div>
+    <div class="inp-group">
+      <label class="inp-label">Описание</label>
+      <textarea class="inp" id="eit-desc" rows="2">${item ? (item.desc||'') : ''}</textarea>
+    </div>
+    <div class="inp-row">
+      <div class="inp-group">
+        <label class="inp-label">Тег</label>
+        <input class="inp" id="eit-tag" value="${item ? (item.tag||'') : ''}" placeholder="NEW">
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">URL картинки</label>
+        <input class="inp" id="eit-img" value="${item ? (item.imageUrl&&!item.imageUrl.startsWith('data:')?item.imageUrl:'') : ''}" placeholder="https://...">
+      </div>
+    </div>
+    ${item && item.imageUrl && item.imageUrl.startsWith('data:') ? '<div style="font-size:11px;color:var(--muted2);margin-bottom:8px">📎 Картинка загружена через файл</div>' : ''}
+    <div class="inp-group">
+      <label class="inp-label">Заменить картинку (файл)</label>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex">
+        🖼 Выбрать фото
+        <input type="file" accept="image/*" id="eit-img-file" style="display:none" onchange="previewEditItemImg(event)">
+      </label>
+      <div id="eit-img-preview" style="margin-top:6px"></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:8px" onclick="_saveEditItem(${id})">💾 Сохранить</button>
+  `;
+  document.getElementById('draw-modal').classList.add('show');
+}
+
+function previewEditItemImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('eit-img-preview').innerHTML =
+      `<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:90px;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function _saveEditItem(id) {
+  const name  = document.getElementById('eit-name').value.trim();
+  const price = parseInt(document.getElementById('eit-price').value);
+  const stockVal = document.getElementById('eit-stock').value.trim();
+  const desc  = document.getElementById('eit-desc').value.trim();
+  const tag   = document.getElementById('eit-tag').value.trim();
+  const imgUrl= document.getElementById('eit-img').value.trim();
+  const imgFile = document.getElementById('eit-img-file').files[0];
+  const body = {};
+  if (name)  body.name  = name;
+  if (price) body.price = price;
+  body.desc = desc;
+  body.tag  = tag;
+  // stock: empty or 0 = unlimited (null), otherwise number
+  body.stock = (stockVal === '' || stockVal === '0') ? null : parseInt(stockVal);
+  if (imgUrl) body.imageUrl = imgUrl;
+  const r = await api('/shop/'+id, 'PATCH', body);
+  if (!r.ok) { toast(r.error||'Ошибка сохранения','r'); return; }
+  // Upload image file if selected
+  if (imgFile) {
+    const b64 = await new Promise(res => {
+      const fr = new FileReader();
+      fr.onload = e => res(e.target.result.split(',')[1]);
+      fr.readAsDataURL(imgFile);
+    });
+    await api('/shop/'+id+'/image','POST',{ imageBase64:b64, mimeType:imgFile.type });
+  }
+  toast('✅ Товар обновлён','g');
+  closeDrawModal();
+  loadShop();
 }
 async function deleteShopItem(id) {
   if (!confirm('Удалить?')) return;
