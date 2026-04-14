@@ -484,96 +484,11 @@ async function editStaticItem(id) {
   if (r.ok) { toast('Обновлено','g'); loadShop(); } else toast(r.error||'Ошибка','r');
 }
 async function editCustomItem(id) {
-  // Load current item data
-  const items = await api('/shop');
-  const item = Array.isArray(items) ? items.find(i => i.id === id) : null;
-  // Set modal title
-  const titleEl = document.getElementById('draw-modal-title');
-  if (titleEl) titleEl.textContent = 'Редактировать товар';
-  // Build modal body
-  document.getElementById('dm-body').innerHTML = `
-    <div class="inp-group">
-      <label class="inp-label">Название</label>
-      <input class="inp" id="eit-name" value="${item ? (item.name||'') : ''}" placeholder="Название товара">
-    </div>
-    <div class="inp-row">
-      <div class="inp-group">
-        <label class="inp-label">Цена (монет)</label>
-        <input class="inp" id="eit-price" type="number" value="${item ? (item.price||'') : ''}" placeholder="999">
-      </div>
-      <div class="inp-group">
-        <label class="inp-label">В наличии (шт.)</label>
-        <input class="inp" id="eit-stock" type="number" value="${item && item.stock !== null && item.stock !== undefined ? item.stock : ''}" placeholder="0 = без ограничения">
-      </div>
-    </div>
-    <div class="inp-group">
-      <label class="inp-label">Описание</label>
-      <textarea class="inp" id="eit-desc" rows="2">${item ? (item.desc||'') : ''}</textarea>
-    </div>
-    <div class="inp-row">
-      <div class="inp-group">
-        <label class="inp-label">Тег</label>
-        <input class="inp" id="eit-tag" value="${item ? (item.tag||'') : ''}" placeholder="NEW">
-      </div>
-      <div class="inp-group">
-        <label class="inp-label">URL картинки</label>
-        <input class="inp" id="eit-img" value="${item ? (item.imageUrl&&!item.imageUrl.startsWith('data:')?item.imageUrl:'') : ''}" placeholder="https://...">
-      </div>
-    </div>
-    ${item && item.imageUrl && item.imageUrl.startsWith('data:') ? '<div style="font-size:11px;color:var(--muted2);margin-bottom:8px">📎 Картинка загружена через файл</div>' : ''}
-    <div class="inp-group">
-      <label class="inp-label">Заменить картинку (файл)</label>
-      <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex">
-        🖼 Выбрать фото
-        <input type="file" accept="image/*" id="eit-img-file" style="display:none" onchange="previewEditItemImg(event)">
-      </label>
-      <div id="eit-img-preview" style="margin-top:6px"></div>
-    </div>
-    <button class="btn btn-primary" style="margin-top:8px" onclick="_saveEditItem(${id})">💾 Сохранить</button>
-  `;
-  document.getElementById('draw-modal').classList.add('show');
-}
-
-function previewEditItemImg(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('eit-img-preview').innerHTML =
-      `<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:90px;object-fit:cover">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function _saveEditItem(id) {
-  const name  = document.getElementById('eit-name').value.trim();
-  const price = parseInt(document.getElementById('eit-price').value);
-  const stockVal = document.getElementById('eit-stock').value.trim();
-  const desc  = document.getElementById('eit-desc').value.trim();
-  const tag   = document.getElementById('eit-tag').value.trim();
-  const imgUrl= document.getElementById('eit-img').value.trim();
-  const imgFile = document.getElementById('eit-img-file').files[0];
-  const body = {};
-  if (name)  body.name  = name;
-  if (price) body.price = price;
-  body.desc = desc;
-  body.tag  = tag;
-  // stock: empty or 0 = unlimited (null), otherwise number
-  body.stock = (stockVal === '' || stockVal === '0') ? null : parseInt(stockVal);
-  if (imgUrl) body.imageUrl = imgUrl;
-  const r = await api('/shop/'+id, 'PATCH', body);
-  if (!r.ok) { toast(r.error||'Ошибка сохранения','r'); return; }
-  // Upload image file if selected
-  if (imgFile) {
-    const b64 = await new Promise(res => {
-      const fr = new FileReader();
-      fr.onload = e => res(e.target.result.split(',')[1]);
-      fr.readAsDataURL(imgFile);
-    });
-    await api('/shop/'+id+'/image','POST',{ imageBase64:b64, mimeType:imgFile.type });
-  }
-  toast('✅ Товар обновлён','g');
-  closeDrawModal();
-  loadShop();
+  const price = prompt('Новая цена:'); const stock = prompt('В наличии (0=∞):');
+  const body = {}; if (price) body.price=parseInt(price);
+  if (stock!==null) body.stock = stock==='0'?null:parseInt(stock);
+  const r = await api('/shop/'+id,'PATCH',body);
+  if (r.ok) { toast('Обновлено','g'); loadShop(); } else toast(r.error||'Ошибка','r');
 }
 async function deleteShopItem(id) {
   if (!confirm('Удалить?')) return;
@@ -707,6 +622,116 @@ async function toggleRepair() {
   const r = await api('/repair','POST',{});
   if (r.ok) { toast(r.repairMode?'🔧 Включено':'✅ Выключено','g'); loadRepair(); }
   else toast(r.error||'Ошибка','r');
+}
+
+
+/* ══ CASES EDITOR ══ */
+// Default cases config (mirrors config.js)
+const _CASES_DEFAULT = [
+  {id:1,name:'Нищий Кейс',price:4444,photo:'https://i.imgur.com/N6vjFz8.jpeg',drops:[
+    {icoKey:'coins',n:'Монеты',v:'+450',coins:450,w:30},
+    {icoKey:'coins',n:'Монеты',v:'+600',coins:600,w:25},
+    {icoKey:'coins',n:'Монеты',v:'+900',coins:900,w:20},
+    {icoKey:'coins',n:'Монеты',v:'+1500',coins:1500,w:15},
+    {icoKey:'coins',n:'Монеты',v:'+2000',coins:2000,w:5},
+    {icoKey:'stars',n:'50 Звёзд ⭐',v:'50 ⭐',stars:50,w:5},
+  ]},
+  {id:2,name:'Средний Кейс',price:8888,photo:'https://i.imgur.com/hxTvBaf.jpeg',drops:[
+    {icoKey:'coins',n:'Монеты',v:'+888',coins:888,w:30},
+    {icoKey:'coins',n:'Монеты',v:'+1200',coins:1200,w:25},
+    {icoKey:'coins',n:'Монеты',v:'+2000',coins:2000,w:20},
+    {icoKey:'coins',n:'Монеты',v:'+3500',coins:3500,w:10},
+    {icoKey:'coins',n:'Монеты',v:'+5000',coins:5000,w:10},
+    {icoKey:'stars',n:'100 Звёзд ⭐',v:'100 ⭐',stars:100,w:5},
+  ]},
+  {id:3,name:'Кейс Богача',price:19999,photo:'https://i.imgur.com/dpfHwkG.jpeg',drops:[
+    {icoKey:'coins',n:'Монеты',v:'+2222',coins:2222,w:25},
+    {icoKey:'coins',n:'Монеты',v:'+3500',coins:3500,w:25},
+    {icoKey:'coins',n:'Монеты',v:'+5555',coins:5555,w:20},
+    {icoKey:'coins',n:'Монеты',v:'+7777',coins:7777,w:15},
+    {icoKey:'coins',n:'Монеты',v:'+15000',coins:15000,w:10},
+    {icoKey:'stars',n:'150 Звёзд ⭐',v:'150 ⭐',stars:150,w:5},
+  ]},
+  {id:4,name:'Кейс Миллионера',price:77000,photo:'https://i.imgur.com/3iI3Gpq.jpeg',drops:[
+    {icoKey:'megagift',n:'Мега-подарок',v:'х1',inv:'megagift',cnt:1,w:5},
+    {icoKey:'coins',n:'Монеты',v:'+5000',coins:5000,w:22},
+    {icoKey:'coins',n:'Монеты',v:'+9999',coins:9999,w:20},
+    {icoKey:'coins',n:'Монеты',v:'+15000',coins:15000,w:20},
+    {icoKey:'coins',n:'Монеты',v:'+25000',coins:25000,w:15},
+    {icoKey:'coins',n:'Монеты',v:'+50000',coins:50000,w:10},
+    {icoKey:'stars',n:'200 Звёзд ⭐',v:'200 ⭐',stars:200,w:3},
+    {icoKey:'coins',n:'Монеты',v:'+100000',coins:100000,w:5,rare:true},
+  ]},
+];
+
+let _editingCaseDrops = [];
+let _editingCaseId = 1;
+
+function loadCaseEditor() {
+  const id = parseInt(document.getElementById('case-select').value);
+  _editingCaseId = id;
+  const def = _CASES_DEFAULT.find(c => c.id === id);
+  if (!def) return;
+  _editingCaseDrops = JSON.parse(JSON.stringify(def.drops));
+  document.getElementById('case-price').value = def.price;
+  document.getElementById('case-photo').value = def.photo || '';
+  renderCaseDrops();
+}
+
+function renderCaseDrops() {
+  const el = document.getElementById('case-drops-list');
+  if (!_editingCaseDrops.length) { el.innerHTML = '<div class="empty" style="padding:10px">Нет призов</div>'; return; }
+  const totalW = _editingCaseDrops.reduce((s,d)=>s+(d.w||1),0);
+  el.innerHTML = _editingCaseDrops.map((d,i) => {
+    const pct = totalW > 0 ? ((d.w||1)/totalW*100).toFixed(1) : 0;
+    const icon = d.stars ? '⭐' : d.inv ? '🎁' : '💰';
+    return `<div class="item-card" style="padding:8px 10px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">${icon}</span>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700">${d.n}</div>
+          <div style="font-size:10px;color:var(--muted2)">Вес: ${d.w||1} | Шанс: ~${pct}%</div>
+        </div>
+        <button class="btn btn-danger btn-sm" style="padding:4px 8px" onclick="_removeDrop(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _removeDrop(i) {
+  _editingCaseDrops.splice(i,1);
+  renderCaseDrops();
+}
+
+function addCaseDrop() {
+  const type = document.getElementById('drop-type').value;
+  const name = document.getElementById('drop-name').value.trim();
+  const val  = parseInt(document.getElementById('drop-value').value) || 0;
+  const w    = parseInt(document.getElementById('drop-weight').value) || 10;
+  if (!name || !val) { toast('Заполни название и значение','r'); return; }
+  const drop = { n: name, w };
+  if (type === 'coins') { drop.icoKey='coins'; drop.v='+'+val; drop.coins=val; }
+  else if (type === 'stars') { drop.icoKey='stars'; drop.v=val+' ⭐'; drop.stars=val; }
+  else if (type === 'vip') { drop.icoKey='vip'; drop.v=val+'д VIP'; drop.vipDays=val; }
+  _editingCaseDrops.push(drop);
+  renderCaseDrops();
+  ['drop-name','drop-value'].forEach(id=>document.getElementById(id).value='');
+}
+
+async function saveCaseEdit() {
+  const price = parseInt(document.getElementById('case-price').value);
+  const photo = document.getElementById('case-photo').value.trim();
+  if (!price) { toast('Укажи цену','r'); return; }
+  // Save via admin API - stores in DB as case overrides
+  const r = await api('/cases/'+_editingCaseId,'PATCH',{
+    price, photo, drops: _editingCaseDrops
+  });
+  if (r.ok) { toast('Кейс сохранён ✅','g'); }
+  else { toast('Ошибка: '+( r.error||'?'),'r'); }
+}
+
+async function loadCasesPage() {
+  loadCaseEditor(); // Load first case by default
 }
 
 /* ══ INIT ══ */
