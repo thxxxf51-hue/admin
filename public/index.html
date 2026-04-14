@@ -222,6 +222,40 @@
   <div id="static-items"><div class="empty">Загрузка…</div></div>
   <div class="sec-title" style="margin-top:4px">Кастомные товары</div>
   <div id="custom-items"><div class="empty">Загрузка…</div></div>
+
+  <div class="sec-title" style="margin-top:8px">Кейсы</div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Редактировать кейс</div></div>
+    <div class="inp-group"><label class="inp-label">Выбрать кейс</label>
+      <select class="inp" id="case-select" onchange="loadCaseEditor()">
+        <option value="1">Нищий Кейс</option>
+        <option value="2">Средний Кейс</option>
+        <option value="3">Кейс Богача</option>
+        <option value="4">Кейс Миллионера</option>
+      </select>
+    </div>
+    <div class="inp-row">
+      <div class="inp-group"><label class="inp-label">Цена (монет)</label><input class="inp" id="case-price" type="number" placeholder="4444"></div>
+      <div class="inp-group"><label class="inp-label">Картинка URL</label><input class="inp" id="case-photo" placeholder="https://..."></div>
+    </div>
+    <div class="sec-title" style="margin-top:4px">Призы кейса</div>
+    <div id="case-drops-list" style="margin-bottom:10px"></div>
+    <div class="inp-row" style="flex-wrap:wrap;gap:6px">
+      <div class="inp-group"><label class="inp-label">Тип приза</label>
+        <select class="inp" id="drop-type">
+          <option value="coins">💰 Монеты</option>
+          <option value="stars">⭐ Звёзды</option>
+          <option value="vip">👑 VIP</option>
+        </select>
+      </div>
+      <div class="inp-group"><label class="inp-label">Название</label><input class="inp" id="drop-name" placeholder="100 монет"></div>
+      <div class="inp-group"><label class="inp-label">Значение</label><input class="inp" id="drop-value" type="number" placeholder="100"></div>
+      <div class="inp-group"><label class="inp-label">Шанс (вес %)</label><input class="inp" id="drop-weight" type="number" placeholder="20" value="20"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="addCaseDrop()" style="margin-bottom:8px">+ Добавить приз</button>
+    <button class="btn btn-primary" onclick="saveCaseEdit()">💾 Сохранить кейс</button>
+  </div>
+  <div id="cases-list"><div class="empty">Загрузка…</div></div>
 </div>
 
 <!-- TASKS -->
