@@ -184,6 +184,7 @@ async function openUserModal(uid) {
   document.getElementById('user-modal').classList.add('show');
   // Load transactions async
   loadUserTxs(uid);
+  loadUserOrders(uid);
 }
 async function loadUserTxs(uid) {
   const el = document.getElementById('um-txs');
@@ -205,6 +206,36 @@ async function loadUserTxs(uid) {
       </div>`;
     }).join('');
   } catch { el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--muted2);font-size:12px">Ошибка</div>'; }
+}
+
+async function loadUserOrders(uid) {
+  const r = await api('/orders/'+uid);
+  if (!r.ok || !r.orders || !r.orders.length) return;
+  const el = document.getElementById('um-txs');
+  if (!el) return;
+  const pending = r.orders.filter(o => o.status === 'pending');
+  if (!pending.length) return;
+  const ordersHtml = `<div style="margin-top:12px">
+    <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">📦 Заказы</div>
+    ${pending.map(o => `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">${o.type === 'stars' ? '⭐ ' + o.amount + ' Stars' : o.details}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px">${o.details} · <span style="color:#f59e0b;font-weight:600">На проверке</span></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-green btn-sm" style="flex:1" onclick="orderAction('${uid}','${o.id}','approved')">✅ Одобрить</button>
+          <button class="btn btn-danger btn-sm" style="flex:1" onclick="orderAction('${uid}','${o.id}','rejected')">❌ Отказ</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+  el.insertAdjacentHTML('afterend', ordersHtml);
+}
+
+async function orderAction(uid, orderId, status) {
+  const r = await api('/orders/'+uid+'/'+orderId+'/status','POST',{ status });
+  if (r.ok) {
+    toast(status === 'approved' ? '✅ Одобрено' : '❌ Отказано', status === 'approved' ? 'g' : 'r');
+    openUserModal(uid); // refresh
+  } else toast(r.error||'Ошибка','r');
 }
 
 function closeUserModal() { document.getElementById('user-modal').classList.remove('show'); }
@@ -262,7 +293,10 @@ async function createDraw() {
   if (!endVal) { toast('Укажи время окончания','r'); return; }
   const timeMs = new Date(endVal).getTime() - Date.now();
   if (timeMs < 10000) { toast('Дата в прошлом','r'); return; }
-  const r = await api('/draws','POST',{ prize, timeMs, winnersCount:winners, requireTicket:ticket, imageUrl:imgUrl||null });
+  const vipOnly = document.getElementById('d-vip-only').classList.contains('on');
+  const ticketPriceEl = document.getElementById('d-ticket-price');
+  const ticketPrice = ticketPriceEl ? (parseInt(ticketPriceEl.value)||null) : null;
+  const r = await api('/draws','POST',{ prize, timeMs, winnersCount:winners, requireTicket:ticket, ticketPrice, vipOnly, imageUrl:imgUrl||null });
   if (!r.ok) { toast(r.error||'Ошибка','r'); return; }
   const id = r.id;
   if (desc) await api(`/draws/${id}/desc`,'PATCH',{ desc });
